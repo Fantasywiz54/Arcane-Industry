@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "normal": { "model": "arcaneindustry:crystal_tile_entity_block" }
+    }
+}
