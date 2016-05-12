@@ -15,24 +15,35 @@ public class ContainerCrystalTileEntity extends Container {
 	public ContainerCrystalTileEntity(IInventory playerInv, CrystalTileEntity te) {
 		this.te = te;
 		
-		// Tile Entity Input Slots, slot 0-8, slot ids 0-8
+		// Tile Entity Import Slots, slot 0-8, slot ids 0-8
 		for (int x = 0; x < 9; x++) {
 			this.addSlotToContainer(new Slot(te, x, 8 + x * 18, 34));
 		}
 		
-		// Tile Entity Output Slots, slot 9-17, slot ids 9-17
+		// Crystal Import Filter Slots, slot 9-11, slot ids 9-11
+		for (int x = 0; x < 3; x++) {
+			this.addSlotToContainer(new Slot(te, x, 115 + x * 18, 12));
+		}
+		
+		// Crystal Export Slots, slot 12-20, slot ids 12-20
 		for (int x = 0; x < 9; x++) {
 			this.addSlotToContainer(new Slot(te, x + 9, 8 + x * 18, 76));
 		}
 		
-		// Player Inventory, slot 9-35, slot ids 17-43
+		// Crystal Export Filter slots, slot ids 21-23
+		for (int x = 0; x < 3; x++) {
+			this.addSlotToContainer(new Slot(te, x, 115 + x * 18, 54));
+		}
+		
+		
+		// Player Inventory, slot 9-35, slot ids 24-49
 		for (int y = 0; y < 3; y++) {
 			for (int x = 0; x < 9; x++) {
 				this.addSlotToContainer(new Slot(playerInv, x + y * 9 + 9, 8 + x * 18, 111 + y * 18));
 			}
 		}
 		
-		// Player Inventory, slot 0-8, slot ids 43-52
+		// Player Inventory, slot 0-8, slot ids 50-58
 		for (int x = 0; x < 9; x++) {
 			this.addSlotToContainer(new Slot(playerInv, x, 8 + x * 18, 169));
 		}
