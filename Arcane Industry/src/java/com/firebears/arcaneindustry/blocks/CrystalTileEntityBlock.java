@@ -21,7 +21,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class CrystalTileEntityBlock extends ModBlock implements ITileEntityProvider {
-
+	
 	public CrystalTileEntityBlock(String name) {
 		super(Material.iron);
 		
