@@ -22,28 +22,28 @@ public class ContainerCrystalTileEntity extends Container {
 		
 		// Crystal Import Filter Slots, slot 9-11, slot ids 9-11
 		for (int x = 0; x < 3; x++) {
-			this.addSlotToContainer(new Slot(te, x, 115 + x * 18, 12));
+			this.addSlotToContainer(new Slot(te, x + 9, 116 + x * 18, 13));
 		}
 		
 		// Crystal Export Slots, slot 12-20, slot ids 12-20
 		for (int x = 0; x < 9; x++) {
-			this.addSlotToContainer(new Slot(te, x + 9, 8 + x * 18, 76));
+			this.addSlotToContainer(new Slot(te, x + 12, 8 + x * 18, 76));
 		}
 		
 		// Crystal Export Filter slots, slot ids 21-23
 		for (int x = 0; x < 3; x++) {
-			this.addSlotToContainer(new Slot(te, x, 115 + x * 18, 54));
+			this.addSlotToContainer(new Slot(te, x + 21, 116 + x * 18, 55));
 		}
 		
 		
-		// Player Inventory, slot 9-35, slot ids 24-49
+		// Player Inventory, slot 9-35, slot ids 9-35
 		for (int y = 0; y < 3; y++) {
 			for (int x = 0; x < 9; x++) {
 				this.addSlotToContainer(new Slot(playerInv, x + y * 9 + 9, 8 + x * 18, 111 + y * 18));
 			}
 		}
 		
-		// Player Inventory, slot 0-8, slot ids 50-58
+		// Player Inventory, slot 0-8, slot ids 0-8
 		for (int x = 0; x < 9; x++) {
 			this.addSlotToContainer(new Slot(playerInv, x, 8 + x * 18, 169));
 		}
@@ -66,7 +66,7 @@ public class ContainerCrystalTileEntity extends Container {
 	        // [...] Custom behaviour
 	        if (fromSlot < 9) {
 	        	// from TE inv to Player inventory
-	        	if (!this.mergeItemStack(current, 9, 45, true)) {
+	        	if (!this.mergeItemStack(current, 24, 58, true)) {
 	        		return null;
 	        	}
 	        } else {

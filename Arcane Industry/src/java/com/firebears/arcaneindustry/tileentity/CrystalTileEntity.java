@@ -2,7 +2,6 @@ package com.firebears.arcaneindustry.tileentity;
 
 import java.util.ArrayList;
 
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
@@ -23,17 +22,22 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
 		Import, Export;
 	}
 	
+	private enum FilterType {
+		Import, Export;
+	}
+	
 	private ItemStack[] inventory;
 	private String customName;
     private int transferCooldown = -1;
     
     private BlockPos linkedInventory;
-    
     private BlockPos parentCrystal;
-    
     private ArrayList<BlockPos> childCrystals = new ArrayList<BlockPos>();
     
+    public ItemStack stackToLookFor;
+    public boolean pingParent;
     
+    public EnumFacing simultatedDirection = EnumFacing.NORTH;
 	
 	public CrystalTileEntity() {
 		this.inventory = new ItemStack[this.getSizeInventory()];
@@ -50,6 +54,8 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
                 this.setTransferCooldown(0);
             }
             
+            // if this crystal has a linked inventory, try to pull items out of it and place items in it.
+            // base on filters
             if (!this.isOnTransferCooldown() && linkedInventory != null) {
 				IInventory inv = null;
 
@@ -58,11 +64,29 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
 				if (te instanceof IInventory) {
 					inv = (IInventory)te;
 					
+					// search attached inventory for items to take
 					for (int i = 0; i < inv.getSizeInventory(); i++) {
 						boolean foundItem = false;
 						
-						foundItem = pullItemFromSlot(this, inv, i, (EnumFacing)null);
+						if (doesItemMatchFilter(FilterType.Export, inv.getStackInSlot(i))) {
+							foundItem = pullItemFromSlot(this, inv, i, null);
+						}
 
+						this.setTransferCooldown(8);
+						
+						if (foundItem) {
+							break;
+						}
+					}
+					
+					// search import inventory for items to place in attached inventory
+					for (int i = 0; i < getLastImportInvID() + 1; i++) {
+						boolean foundItem = false;
+						
+						if (doesItemMatchFilter(FilterType.Import, this.getStackInSlot(i))) {
+							foundItem = pullItemFromSlot(inv, this, i, null);
+						}
+						
 						this.setTransferCooldown(8);
 						
 						if (foundItem) {
@@ -71,7 +95,81 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
 					}
 				}
             }
+            
+            // talk to parent crystal and try to get an item from it
+            // if the export inventory isn't full
+            if (!this.isOnTransferCooldown() && this.parentCrystal != null) {
+            	System.out.println(parentCrystal);
+            	CrystalTileEntity parent = (CrystalTileEntity)this.worldObj.getTileEntity(parentCrystal);
+            	
+            	for (int i = 0; i < CrystalTileEntity.getLastExportInvID(); i++) {
+            		boolean foundItem = false;
+					
+					if (doesItemMatchFilter(FilterType.Import, this.getStackInSlot(i))) {
+						foundItem = pullItemFromSlot(parent, this, i, null);
+					}
+					
+					this.setTransferCooldown(8);
+					
+					if (foundItem) {
+						break;
+					}
+            	}
+            }
 		}
+	}
+	
+	private boolean doesItemMatchFilter(FilterType filter, ItemStack stack) {
+		if (filter == FilterType.Import) {
+			// will the import filter allow this crystal to push items into its linked inventory
+			boolean itemNotInFilter = true;
+			boolean filterEmpty = true;
+			
+			if (stack != null) {
+					for (int i = 9; i < 12; i++) {
+						if (inventory[i] != null) {
+							filterEmpty = false;
+		
+							if (canCombine(inventory[i], stack)) {
+								itemNotInFilter = false;
+							}
+						}
+					}
+					
+					// if the stack matches one of the filter slots, allow it in
+					if (!itemNotInFilter || filterEmpty) {
+						return true;
+					}
+			} else {
+				return false;
+			}
+		} else if (filter == FilterType.Export) {
+			// will the export filter allow this crystal to pull items out of its linked inventory or pass items to other crystals
+			boolean itemInFilter = false;
+			boolean filterEmpty = true;
+			
+			if (stack != null) {
+				for (int i = 21; i < 24; i++) {
+					if (inventory[i] != null) {
+						filterEmpty = false;
+						
+						if (canCombine(inventory[i], stack)) {
+							itemInFilter = true;
+						}
+					}
+				}
+				
+				// if the filter is empty any item can be moved
+				// if the filter has the item trying to be moved, it can be moved
+				if (filterEmpty || itemInFilter) {
+					return true;
+				}
+			} else {
+				return false;
+			}
+		}
+		
+		return false;
 	}
 	
 	// move items between import and export inventories
@@ -98,14 +196,32 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
 		return false;
 	}
 	
+	// check if parent crystal has the itemstack in its inventory
+	// if the stack is in the import inventory, move 1 to the export inventory and send it to the asking crystal
+	public boolean checkParentForStack(ItemStack stack) {
+		for (int i = 0; i < getSizeInventory(); i++) {
+			if (canCombine(stack, inventory[i])) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	// pull items from inventories
-
 	private static boolean pullItemFromSlot(IInventory inventoryOut , IInventory inventoryIn, int index, EnumFacing direction) {
         ItemStack itemstack = inventoryIn.getStackInSlot(index);
 
         if (itemstack != null && canExtractItemFromSlot(inventoryIn, itemstack, index, direction)) {
             ItemStack itemstack1 = itemstack.copy();
-            ItemStack itemstack2 = putStackInInventoryAllSlots(inventoryOut, inventoryIn.decrStackSize(index, 1), (EnumFacing)null);
+            ItemStack itemstack2;
+            
+            // if the inventory for the items to be placed in is an instanceof crystaltileentity use one method, else use the other
+            if (inventoryOut instanceof CrystalTileEntity) {
+            	itemstack2 = putStackInCrystalInventoryAllSlots(inventoryOut, inventoryIn.decrStackSize(index, 1), direction);
+            } else {
+            	itemstack2 = putStackInInventoryAllSlots(inventoryOut, inventoryIn.decrStackSize(index, 1), direction);
+            }
 
             if (itemstack2 == null || itemstack2.stackSize == 0) {
                 inventoryIn.markDirty();
@@ -130,8 +246,34 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
         return stack1.getItem() != stack2.getItem() ? false : (stack1.getMetadata() != stack2.getMetadata() ? false : (stack1.stackSize > stack1.getMaxStackSize() ? false : ItemStack.areItemStackTagsEqual(stack1, stack2)));
     }
 	
-	public static ItemStack putStackInInventoryAllSlots(IInventory inventoryIn, ItemStack stack, EnumFacing side) {
+    public static ItemStack putStackInCrystalInventoryAllSlots(IInventory inventoryIn, ItemStack stack, EnumFacing side) {
         if (inventoryIn instanceof ISidedInventory && side != null) {
+        	
+            ISidedInventory isidedinventory = (ISidedInventory)inventoryIn;
+            int[] aint = isidedinventory.getSlotsForFace(side);
+
+            for (int k = 0; k < aint.length && stack != null && stack.stackSize > 0; ++k) {
+                stack = insertStack(inventoryIn, stack, aint[k], side);
+            }
+        }
+        else {
+            int i = inventoryIn.getSizeInventory();
+            
+            for (int j = 12; j < i && stack != null && stack.stackSize > 0 && j < getLastExportInvID() + 1; ++j) {
+            	stack = insertStack(inventoryIn, stack, j, side);
+            }
+        }
+
+        if (stack != null && stack.stackSize == 0) {
+            stack = null;
+        }
+
+        return stack;
+    }
+    
+    public static ItemStack putStackInInventoryAllSlots(IInventory inventoryIn, ItemStack stack, EnumFacing side) {
+        if (inventoryIn instanceof ISidedInventory && side != null) {
+        	
             ISidedInventory isidedinventory = (ISidedInventory)inventoryIn;
             int[] aint = isidedinventory.getSlotsForFace(side);
 
@@ -143,7 +285,7 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
             int i = inventoryIn.getSizeInventory();
             
             for (int j = 0; j < i && stack != null && stack.stackSize > 0; ++j) {
-                stack = insertStack(inventoryIn, stack, j, side);
+            	stack = insertStack(inventoryIn, stack, j, side);
             }
         }
 
@@ -227,6 +369,14 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
     	}
     	
     	return true;
+    }
+    
+    // ping parent crystal looking for an item
+    public ItemStack pingParentCrystal() {
+    	CrystalTileEntity cte = (CrystalTileEntity)this.worldObj.getTileEntity(parentCrystal);
+    	ItemStack stack;
+    	
+    	return null;
     }
     
     // linking methods
@@ -350,6 +500,14 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
 	public void setCustomName(String customName) {
 		this.customName = customName;
 	}
+	
+	public static int getLastImportInvID() {
+		return 8;
+	}
+	
+	public static int getLastExportInvID() {
+		return 20;
+	}
 
 	@Override
 	public String getName() {
@@ -421,22 +579,20 @@ public class CrystalTileEntity extends TileEntity implements ITickable, IInvento
 
 	@Override
 	public void setInventorySlotContents(int index, ItemStack stack) {
-		if (!(index >= 9 && index < 12) || !(index >= 21 && index < 24)) {
-			if (index < 0 || index >= this.getSizeInventory()) {
-				return;
-			}
-			
-			if (stack != null && stack.stackSize > this.getInventoryStackLimit()) {
-				stack.stackSize = this.getInventoryStackLimit();
-			}
-			
-			if (stack != null && stack.stackSize == 0) {
-				stack = null;
-			}
-			
-			this.inventory[index] = stack;
-			this.markDirty();
+		if (index < 0 || index >= this.getSizeInventory()) {
+			return;
 		}
+		
+		if (stack != null && stack.stackSize > this.getInventoryStackLimit()) {
+			stack.stackSize = this.getInventoryStackLimit();
+		}
+		
+		if (stack != null && stack.stackSize == 0) {
+			stack = null;
+		}
+		
+		this.inventory[index] = stack;
+		this.markDirty();
 	}
 
 	@Override
