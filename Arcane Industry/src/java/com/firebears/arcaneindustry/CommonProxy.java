@@ -16,8 +16,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class CommonProxy {
 
 	public void preInit(FMLPreInitializationEvent e) {
-		ModBlocks.createBlocks();
 		ModItems.createItems();
+		ModBlocks.createBlocks();
 		ModTileEntities.init();
 	}
 	

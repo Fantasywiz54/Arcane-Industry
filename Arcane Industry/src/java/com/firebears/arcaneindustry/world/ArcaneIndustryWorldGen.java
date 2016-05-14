@@ -2,10 +2,13 @@ package com.firebears.arcaneindustry.world;
 
 import java.util.Random;
 
+import com.firebears.arcaneindustry.blocks.ModBlocks;
+
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.gen.feature.WorldGenMinable;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import net.minecraftforge.fml.common.IWorldGenerator;
 
@@ -34,6 +37,12 @@ public class ArcaneIndustryWorldGen implements IWorldGenerator {
 			
 			break;
 		}
+	}
+	
+	public ArcaneIndustryWorldGen() {
+		this.gen_ruby_ore = new WorldGenMinable(ModBlocks.rubyOre.getDefaultState(), 8);
+		this.gen_sapphire_ore = new WorldGenMinable(ModBlocks.sapphireOre.getDefaultState(), 8);
+		this.gen_peridot_ore = new WorldGenMinable(ModBlocks.peridotOre.getDefaultState(), 8);
 	}
 	
 	private void runGenerator(WorldGenerator generator, World world, Random rand,

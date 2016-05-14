@@ -16,10 +16,10 @@ public final class ModBlocks {
 	public static void createBlocks() {
 		// crystal tile entity block
 		crystalTileEntityBlock = GameRegistry.register(new CrystalTileEntityBlock("crystal_tile_entity_block"));
-		
+
 		// Ores
-		rubyOre = GameRegistry.register(new ModBlockOre("rubyOre", Material.rock, ModItems.ruby, 1, 6, 1));
-		sapphireOre = GameRegistry.register(new ModBlockOre("sapphireOre", Material.rock, ModItems.sapphire, 1, 4, 2));
-		peridotOre = GameRegistry.register(new ModBlockOre("peridotOre", Material.rock, ModItems.peridot, 1, 2, 3));
+		rubyOre = GameRegistry.register(new ModBlockOre("rubyOre", Material.rock, 0, ModItems.ruby, 1, 6, 2));
+		sapphireOre = GameRegistry.register(new ModBlockOre("sapphireOre", Material.rock, 0, ModItems.sapphire, 1, 4, 2));
+		peridotOre = GameRegistry.register(new ModBlockOre("peridotOre", Material.rock, 0, ModItems.peridot, 1, 2, 2));
 	}
 }

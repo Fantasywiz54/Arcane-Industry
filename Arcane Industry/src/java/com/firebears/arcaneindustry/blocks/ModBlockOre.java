@@ -25,7 +25,7 @@ public class ModBlockOre extends Block {
 		this.least_quantity = least_quantity;
 		this.most_quantity = most_quantity;
 		this.setHarvestLevel("pickaxe", harvestLevel);
-		this.setHardness(7.0f);
+		this.setHardness(3.0f);
 		this.setResistance(15.0f);
 		this.setUnlocalizedName(unlocalizedName);
 		this.setRegistryName(unlocalizedName);
@@ -33,12 +33,8 @@ public class ModBlockOre extends Block {
 		GameRegistry.register((new ItemBlock(this).setRegistryName(unlocalizedName)));
 	}
 	
-	protected ModBlockOre(String unlocalizedName, Material mat, Item drop, int least_quantity, int most_quantity, int harvestLevel) {
-		this(unlocalizedName, mat, drop, harvestLevel, 0, least_quantity, most_quantity);
-	}
-	
-	protected ModBlockOre(String unlocalizedName, Material mat, Item drop, int harvestLevel) {
-		this(unlocalizedName, mat, drop, harvestLevel, 1, 1);
+	protected ModBlockOre(String unlocalizedName, Material mat, int meta, Item drop, int least_quantity, int most_quantity, int harvestLevel) {
+		this(unlocalizedName, mat, drop, harvestLevel, meta, least_quantity, most_quantity);
 	}
 	
 	@Override

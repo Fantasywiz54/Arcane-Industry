@@ -1,7 +1,7 @@
 tile.crystal_tile_entity_block.name=Crystal
 tile.rubyOre.name=Ruby Ore
-tile.sapphireOre=Sapphire Ore
-tile.peridotOre=Peridot Ore
+tile.sapphireOre.name=Sapphire Ore
+tile.peridotOre.name=Peridot Ore
 
 container.crystal_tile_entity.name=Crystal
 

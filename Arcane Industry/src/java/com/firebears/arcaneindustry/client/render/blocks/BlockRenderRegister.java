@@ -14,6 +14,9 @@ public class BlockRenderRegister {
 	
 	public static void registerBlockRenderer() {
 		reg(ModBlocks.crystalTileEntityBlock);
+		reg(ModBlocks.rubyOre);
+		reg(ModBlocks.sapphireOre);
+		reg(ModBlocks.peridotOre);
 	}
 	
 	public static void reg(Block block) {
